@@ -182,6 +182,54 @@ InModuleScope 'FinOpsToolkit' {
         }
 
         Describe 'Options' {
+            It 'Should use monthly recurrence for supported datasets' {
+                # Arrange
+                # Act
+                New-FinOpsCostExport @newExportParams -Dataset 'ActualCost' -Monthly
+
+                # Assert
+                Assert-MockCalled -ModuleName FinOpsToolkit -CommandName 'Invoke-Rest' -Times 1 -ParameterFilter {
+                    $Body.properties.definition.timeframe -eq 'TheLastMonth' `
+                        -and $Body.properties.schedule.recurrence -eq 'Monthly'
+                }
+            }
+
+            It 'Should ignore monthly recurrence for PriceSheet dataset' {
+                # Arrange
+                # Act
+                New-FinOpsCostExport @newExportParams -Dataset 'PriceSheet' -Monthly
+
+                # Assert
+                Assert-MockCalled -ModuleName FinOpsToolkit -CommandName 'Invoke-Rest' -Times 1 -ParameterFilter {
+                    $Body.properties.definition.timeframe -eq 'TheCurrentMonth' `
+                        -and $Body.properties.schedule.recurrence -eq 'Daily'
+                }
+            }
+
+            It 'Should ignore monthly recurrence for ReservationRecommendations dataset' {
+                # Arrange
+                # Act
+                New-FinOpsCostExport @newExportParams -Dataset 'ReservationRecommendations' -Monthly
+
+                # Assert
+                Assert-MockCalled -ModuleName FinOpsToolkit -CommandName 'Invoke-Rest' -Times 1 -ParameterFilter {
+                    $Body.properties.definition.timeframe -eq 'MonthToDate' `
+                        -and $Body.properties.schedule.recurrence -eq 'Daily'
+                }
+            }
+
+            It 'Should ignore monthly recurrence for ReservationTransactions dataset' {
+                # Arrange
+                # Act
+                New-FinOpsCostExport @newExportParams -Dataset 'ReservationTransactions' -Monthly
+
+                # Assert
+                Assert-MockCalled -ModuleName FinOpsToolkit -CommandName 'Invoke-Rest' -Times 1 -ParameterFilter {
+                    $Body.properties.definition.timeframe -eq 'MonthToDate' `
+                        -and $Body.properties.schedule.recurrence -eq 'Daily'
+                }
+            }
+
             It 'Should set managed identity and default location' {
                 # Arrange
                 # Act

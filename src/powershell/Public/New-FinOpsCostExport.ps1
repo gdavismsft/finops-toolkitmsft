@@ -247,6 +247,14 @@ function New-FinOpsCostExport
     {
         function getProperties()
         {
+            $monthlySupportedDatasets = @('ActualCost', 'AmortizedCost', 'FocusCost', 'ReservationDetails')
+            $useMonthlySchedule = $Monthly -and ($monthlySupportedDatasets -contains $Dataset)
+
+            if ($Monthly -and -not $useMonthlySchedule)
+            {
+                Write-Verbose "Ignoring -Monthly for dataset '$Dataset'. The export will use the default daily schedule."
+            }
+
             # Set default dates based on schedule type
             $start = $StartDate
             $end = $EndDate
@@ -331,10 +339,10 @@ function New-FinOpsCostExport
             }
             else
             {
-                $props.properties.definition.timeframe = "$(if ($Monthly) { 'TheLastMonth' } elseif ($Dataset -eq "PriceSheet") { 'TheCurrentMonth' } else { 'MonthToDate' })"
+                $props.properties.definition.timeframe = "$(if ($useMonthlySchedule) { 'TheLastMonth' } elseif ($Dataset -eq "PriceSheet") { 'TheCurrentMonth' } else { 'MonthToDate' })"
                 $props.properties.schedule = @{
                     status           = "Active"
-                    recurrence       = "$(if ($Monthly) { 'Monthly' } elseif ($Dataset -eq "PriceSheet") { 'Daily' } else { 'Daily' })"
+                    recurrence       = "$(if ($useMonthlySchedule) { 'Monthly' } else { 'Daily' })"
                     recurrencePeriod = $timePeriod
                 }
             }
